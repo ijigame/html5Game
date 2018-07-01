@@ -16,33 +16,36 @@ func main() {
 		c.HTML(200, "index.html", nil)
 	})
 
-	r.GET("/ws", func(c *gin.Context) {
-		wshandler(c.Writer, c.Request)
+	r.GET("/socket", func(c *gin.Context) {
+		websocketHandler(c.Writer, c.Request)
 	})
 
 	r.Run("localhost:12312")
 }
 
-var wsupgrader = websocket.Upgrader{
+var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 }
 
-func wshandler(w http.ResponseWriter, r *http.Request) {
-	conn, err := wsupgrader.Upgrade(w, r, nil)
+func websocketHandler(write http.ResponseWriter, read *http.Request) {
+	conn, err := upgrader.Upgrade(write, read, nil)
 
 	if err != nil {
-		fmt.Printf("Failed to set websocket upgrade: %+v", err)
+		fmt.Println("Failed to set websocket upgrade. ", err)
 		return
 	}
 
-	for {
-		t, _, err := conn.ReadMessage()
+	go func(conn *websocket.Conn) {
+		for {
+			mType, _, err := conn.ReadMessage()
 
-		if err != nil {
-			break
+			if err != nil {
+				break
+			}
+
+			conn.WriteMessage(mType, []byte("pong"))
 		}
+	}(conn)
 
-		conn.WriteMessage(t, []byte("pong"))
-	}
 }
