@@ -4,18 +4,45 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/julienschmidt/httprouter"
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 )
 
-func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprint(w, "Welcome!\n")
+func main() {
+	r := gin.Default()
+	r.LoadHTMLFiles("index.html")
+
+	r.GET("/", func(c *gin.Context) {
+		c.HTML(200, "index.html", nil)
+	})
+
+	r.GET("/ws", func(c *gin.Context) {
+		wshandler(c.Writer, c.Request)
+	})
+
+	r.Run("localhost:12312")
 }
 
-func main() {
-	router := httprouter.New()
-	router.GET("/", Index)
+var wsupgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
 
-	fmt.Println("server start at :8080")
+func wshandler(w http.ResponseWriter, r *http.Request) {
+	conn, err := wsupgrader.Upgrade(w, r, nil)
 
-	http.ListenAndServe(":8080", router)
+	if err != nil {
+		fmt.Printf("Failed to set websocket upgrade: %+v", err)
+		return
+	}
+
+	for {
+		t, _, err := conn.ReadMessage()
+
+		if err != nil {
+			break
+		}
+
+		conn.WriteMessage(t, []byte("pong"))
+	}
 }
