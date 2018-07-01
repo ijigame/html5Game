@@ -6,26 +6,29 @@
 
   <body>
     <h3>WebSocket Go</h3>
-    <pre id="output"></pre>
+    
 
     <script>
       url = 'ws://localhost:12312/socket';
       conn = new WebSocket(url);
       
       send = function(data){
-        $("#output").append((new Date())+ " ==> "+data+"\n")
         conn.send(data)
       }
 
       conn.onmessage = function(msg){
-        $("#output").append((new Date())+ " <== "+msg.data+"\n")
         console.log(msg)
       }
 
       conn.onopen = function(){
-        setInterval( 
-          function(){ send("ping") }
-        , 1000 )
+        send(JSON.stringify({action: 'init'}))
+      }
+
+      document.onkeydown = (event) => {
+        if (event.keyCode === 68)       conn.send('move', {direction: 'right'})
+        else if (event.keyCode === 83)  conn.send('move', {direction: 'down'})
+        else if (event.keyCode === 65)  conn.send('move', {direction: 'left'})
+        else if (event.keyCode === 87)  conn.send('move', {direction: 'up'})
       }
     </script>
 

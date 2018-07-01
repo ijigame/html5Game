@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -28,9 +30,17 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
+type Player struct {
+	x int
+	y int
+}
+
+type SocketRequest struct {
+	Action string `json:"action"`
+}
+
 func websocketHandler(write http.ResponseWriter, read *http.Request) {
 	conn, err := upgrader.Upgrade(write, read, nil)
-
 	if err != nil {
 		fmt.Println("Failed to set websocket upgrade. ", err)
 		return
@@ -38,13 +48,36 @@ func websocketHandler(write http.ResponseWriter, read *http.Request) {
 
 	go func(conn *websocket.Conn) {
 		for {
-			mType, _, err := conn.ReadMessage()
-
+			mType, msg, err := conn.ReadMessage()
 			if err != nil {
 				break
 			}
 
-			conn.WriteMessage(mType, []byte("pong"))
+			ret := []byte(string(msg))
+
+			fmt.Println("ret ", ret)
+			var scReq SocketRequest
+
+			err = json.Unmarshal(ret, &scReq)
+			if err != nil {
+				fmt.Println("There was error while unmarshal", err)
+			}
+
+			switch scReq.Action {
+			case "init":
+				fmt.Println("init")
+				conn.WriteJSON(Player{
+					x: rand.Intn(500),
+					y: rand.Intn(500),
+				})
+			case "move":
+				fmt.Println("move")
+				conn.WriteMessage(mType, []byte("pong"))
+			default:
+				break
+			}
+
+			fmt.Println(string(msg))
 		}
 	}(conn)
 
