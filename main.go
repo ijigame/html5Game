@@ -35,10 +35,6 @@ type Player struct {
 	y int
 }
 
-type SocketRequest struct {
-	Action string `json:"action"`
-}
-
 func websocketHandler(write http.ResponseWriter, read *http.Request) {
 	conn, err := upgrader.Upgrade(write, read, nil)
 	if err != nil {
@@ -53,25 +49,19 @@ func websocketHandler(write http.ResponseWriter, read *http.Request) {
 				break
 			}
 
-			ret := []byte(string(msg))
-
-			fmt.Println("ret ", ret)
-			var scReq SocketRequest
-
-			err = json.Unmarshal(ret, &scReq)
+			var scReq map[string]interface{}
+			err = json.Unmarshal([]byte(string(msg)), &scReq)
 			if err != nil {
 				fmt.Println("There was error while unmarshal", err)
 			}
 
-			switch scReq.Action {
+			switch scReq["action"] {
 			case "init":
-				fmt.Println("init")
 				conn.WriteJSON(Player{
 					x: rand.Intn(500),
 					y: rand.Intn(500),
 				})
 			case "move":
-				fmt.Println("move")
 				conn.WriteMessage(mType, []byte("pong"))
 			default:
 				break

@@ -21,7 +21,7 @@
       }
 
       conn.onopen = function(){
-        send(JSON.stringify({action: 'init'}))
+        send(JSON.stringify({action: 'init', anaconda: 'true'}))
       }
 
       document.onkeydown = (event) => {
