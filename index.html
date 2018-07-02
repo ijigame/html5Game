@@ -26,10 +26,10 @@
       }
 
       document.onkeydown = (event) => {
-        if (event.keyCode === 68)       conn.send({action: 'move', direction: 'right'})
-        else if (event.keyCode === 83)  conn.send({action: 'move', direction: 'down'})
-        else if (event.keyCode === 65)  conn.send({action: 'move', direction: 'left'})
-        else if (event.keyCode === 87)  conn.send({action: 'move', direction: 'up'})
+        if (event.keyCode === 68)       send(JSON.stringify({action: 'move', direction: 'right'}))
+        else if (event.keyCode === 83)  send(JSON.stringify({action: 'move', direction: 'down'}))
+        else if (event.keyCode === 65)  send(JSON.stringify({action: 'move', direction: 'left'}))
+        else if (event.keyCode === 87)  send(JSON.stringify({action: 'move', direction: 'up'}))
       }
     </script>
 
